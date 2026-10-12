@@ -80,10 +80,7 @@ In `Logger::write_log_entry()`, the two upserts run before `START TRANSACTION`, 
 ### 9. Configurable retention
 Retention is hard-coded to 30 days (`Cron::KEEP_DAYS`). Add a `poke_monitor_keep_days` filter now, and a setting later if users ask for it. Update the readme FAQ and privacy section to mention it.
 
-### 10. Constant naming
-Rename `poke_monitor_VERSION`, `poke_monitor_PLUGIN_FILE`, etc. to the WordPress convention `POKE_MONITOR_VERSION`, `POKE_MONITOR_PLUGIN_FILE`, … Keep the old names defined for one release if anything external might rely on them.
-
-### 11. Tests and CI
+### 10. Tests and CI
 - The rule classes (`Probe_Rule`, `Suspicious_Ua_Rule`, `Direct_Php_Rule`, `Xmlrpc_Rule`), `Request_Context::normalize_path()`, `Whitelist::sanitize_input()` and the planned Cloudflare range check are pure or nearly pure, so they are ideal for unit tests.
 - Add a GitHub Actions workflow running PHPCS (WordPress standard), Plugin Check, and the unit tests on PHP 7.4 and the latest PHP.
 

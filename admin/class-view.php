@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 final class View {
 
 	public static function render( string $template, array $data = array() ): void {
-		$template_path = poke_monitor_PLUGIN_DIR . 'admin/views/' . $template . '.php';
+		$template_path = POKE_MONITOR_PLUGIN_DIR . 'admin/views/' . $template . '.php';
 
 		if ( ! file_exists( $template_path ) ) {
 			return;

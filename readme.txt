@@ -8,7 +8,7 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-See who is probing your site: Cloudflare bypasses, secret-file scans, backdoor access, XML-RPC abuse and scanner user agents.
+See who is poking your site: Cloudflare bypasses, secret-file scans, backdoor access, XML-RPC abuse and scanner user agents.
 
 == Description ==
 

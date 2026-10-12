@@ -77,16 +77,16 @@ class Admin_Page {
 
 		wp_enqueue_style(
 			'poke-monitor-admin',
-			poke_monitor_PLUGIN_URL . 'assets/css/admin.css',
+			POKE_MONITOR_PLUGIN_URL . 'assets/css/admin.css',
 			array(),
-			poke_monitor_VERSION
+			POKE_MONITOR_VERSION
 		);
 
 		wp_enqueue_script(
 			'poke-monitor-admin',
-			poke_monitor_PLUGIN_URL . 'assets/js/admin.js',
+			POKE_MONITOR_PLUGIN_URL . 'assets/js/admin.js',
 			array(),
-			poke_monitor_VERSION,
+			POKE_MONITOR_VERSION,
 			true
 		);
 
