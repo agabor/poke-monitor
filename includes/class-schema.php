@@ -6,7 +6,7 @@ defined( 'ABSPATH' ) || exit;
 
 class Schema {
 
-	const DB_VERSION = '1.0.1';
+	const DB_VERSION = '1.0.0';
 
 	const ERROR_TYPE_CF_BYPASS = 1;
 
