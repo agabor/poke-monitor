@@ -1,0 +1,19 @@
+<?php
+
+namespace PokeMonitor\Rules;
+
+use PokeMonitor\Request_Context;
+use PokeMonitor\Cf_Detector;
+
+defined( 'ABSPATH' ) || exit;
+
+class Cf_Bypass_Rule {
+
+	public function matches( Request_Context $context ) {
+		return Cf_Detector::is_bypass_detection_enabled() && ! $context->has_all_cf_headers();
+	}
+
+	public function get_detail( Request_Context $context ) {
+		return null;
+	}
+}

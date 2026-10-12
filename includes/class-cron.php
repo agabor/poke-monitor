@@ -1,0 +1,41 @@
+<?php
+
+namespace PokeMonitor;
+
+defined( 'ABSPATH' ) || exit;
+
+class Cron {
+
+	const HOOK = 'poke_monitor_purge';
+
+	const KEEP_DAYS = 30;
+
+	private $repository;
+
+	public function __construct( Repository $repository ) {
+		$this->repository = $repository;
+	}
+
+	public function register_hooks(): void {
+		add_action( self::HOOK, array( $this, 'run' ) );
+		add_action( 'plugins_loaded', array( $this, 'ensure_scheduled' ) );
+	}
+
+	public function ensure_scheduled(): void {
+		if ( ! wp_next_scheduled( self::HOOK ) ) {
+			wp_schedule_event( time(), 'daily', self::HOOK );
+		}
+	}
+
+	public function run(): int {
+		try {
+			return $this->repository->delete_requests_older_than( $this->get_keep_days() );
+		} catch ( \Throwable $caught_exception ) {
+			return 0;
+		}
+	}
+
+	public function get_keep_days(): int {
+		return self::KEEP_DAYS;
+	}
+}
