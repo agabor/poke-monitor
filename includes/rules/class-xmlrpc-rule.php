@@ -8,6 +8,10 @@ defined( 'ABSPATH' ) || exit;
 
 class Xmlrpc_Rule {
 
+	private const METHOD_NAME_PATTERN = '/\A[A-Za-z0-9._:\-]{1,100}\z/';
+
+	private const INVALID_METHOD_PLACEHOLDER = 'invalid method';
+
 	private static $method_name = null;
 
 	private static $inner_call_count = 0;
@@ -37,7 +41,7 @@ class Xmlrpc_Rule {
 		++self::$inner_call_count;
 
 		if ( null === self::$method_name ) {
-			self::$method_name = $method_name;
+			self::$method_name = $this->sanitize_method_name( $method_name );
 		}
 	}
 
@@ -59,8 +63,22 @@ class Xmlrpc_Rule {
 		}
 
 		if ( preg_match( '#<methodName>([^<]+)</methodName>#i', $body_chunk, $method_name_matches ) ) {
-			self::$method_name = trim( $method_name_matches[1] );
+			self::$method_name = $this->sanitize_method_name( $method_name_matches[1] );
 		}
+	}
+
+	private function sanitize_method_name( $raw_method_name ) {
+		if ( ! is_string( $raw_method_name ) ) {
+			return self::INVALID_METHOD_PLACEHOLDER;
+		}
+
+		$trimmed_method_name = trim( $raw_method_name );
+
+		if ( 1 !== preg_match( self::METHOD_NAME_PATTERN, $trimmed_method_name ) ) {
+			return self::INVALID_METHOD_PLACEHOLDER;
+		}
+
+		return $trimmed_method_name;
 	}
 
 	public function get_detail( Request_Context $context ) {
