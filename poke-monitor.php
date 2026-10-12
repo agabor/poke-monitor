@@ -12,7 +12,7 @@
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: poke-monitor
  *
- * @package PokeMonitor
+ * @package Poke_Monitor
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -26,7 +26,7 @@ define( 'POKE_MONITOR_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'POKE_MONITOR_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 function poke_monitor_autoload( $class_name ) {
-	$namespace_prefix = 'PokeMonitor\\';
+	$namespace_prefix = 'Poke_Monitor\\';
 
 	if ( 0 !== strpos( $class_name, $namespace_prefix ) ) {
 		return;
@@ -54,8 +54,8 @@ function poke_monitor_autoload( $class_name ) {
 
 spl_autoload_register( 'poke_monitor_autoload' );
 
-register_activation_hook( POKE_MONITOR_PLUGIN_FILE, array( 'PokeMonitor\\Activator', 'activate' ) );
-register_deactivation_hook( POKE_MONITOR_PLUGIN_FILE, array( 'PokeMonitor\\Deactivator', 'deactivate' ) );
+register_activation_hook( POKE_MONITOR_PLUGIN_FILE, array( 'Poke_Monitor\\Activator', 'activate' ) );
+register_deactivation_hook( POKE_MONITOR_PLUGIN_FILE, array( 'Poke_Monitor\\Deactivator', 'deactivate' ) );
 
-add_action( 'plugins_loaded', array( 'PokeMonitor\\Schema', 'create_or_upgrade' ), 8 );
-add_action( 'plugins_loaded', array( PokeMonitor\Plugin::instance(), 'boot' ) );
+add_action( 'plugins_loaded', array( 'Poke_Monitor\\Schema', 'create_or_upgrade' ), 8 );
+add_action( 'plugins_loaded', array( Poke_Monitor\Plugin::instance(), 'boot' ) );

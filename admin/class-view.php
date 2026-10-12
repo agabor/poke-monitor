@@ -1,6 +1,6 @@
 <?php
 
-namespace PokeMonitor\Admin;
+namespace Poke_Monitor\Admin;
 
 defined( 'ABSPATH' ) || exit;
 

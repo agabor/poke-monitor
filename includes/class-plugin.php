@@ -1,15 +1,15 @@
 <?php
 
-namespace PokeMonitor;
+namespace Poke_Monitor;
 
-use PokeMonitor\Admin\Admin_Page;
-use PokeMonitor\Admin\Log_Controller;
-use PokeMonitor\Admin\Whitelist_Controller;
-use PokeMonitor\Rules\Cf_Bypass_Rule;
-use PokeMonitor\Rules\Probe_Rule;
-use PokeMonitor\Rules\Direct_Php_Rule;
-use PokeMonitor\Rules\Xmlrpc_Rule;
-use PokeMonitor\Rules\Suspicious_Ua_Rule;
+use Poke_Monitor\Admin\Admin_Page;
+use Poke_Monitor\Admin\Log_Controller;
+use Poke_Monitor\Admin\Allowlist_Controller;
+use Poke_Monitor\Rules\Cf_Bypass_Rule;
+use Poke_Monitor\Rules\Probe_Rule;
+use Poke_Monitor\Rules\Direct_Php_Rule;
+use Poke_Monitor\Rules\Xmlrpc_Rule;
+use Poke_Monitor\Rules\Suspicious_Ua_Rule;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -42,7 +42,7 @@ class Plugin {
 		$probe_rule         = new Probe_Rule();
 		$direct_php_rule    = new Direct_Php_Rule();
 		$suspicious_ua_rule = new Suspicious_Ua_Rule();
-		$whitelist          = new Whitelist();
+		$allowlist          = new Allowlist();
 		$xmlrpc_rule        = new Xmlrpc_Rule();
 
 		$classifier = new Classifier(
@@ -51,7 +51,7 @@ class Plugin {
 			$direct_php_rule,
 			$xmlrpc_rule,
 			$suspicious_ua_rule,
-			$whitelist
+			$allowlist
 		);
 
 		$this->repository = new Repository();
@@ -74,11 +74,11 @@ class Plugin {
 	private function boot_admin(): void {
 		$admin_page           = new Admin_Page( $this->repository );
 		$log_controller       = new Log_Controller( $this->repository );
-		$whitelist_controller = new Whitelist_Controller( $this->repository );
+		$allowlist_controller = new Allowlist_Controller( $this->repository );
 
 		$admin_page->register_hooks();
 		$log_controller->register_hooks();
-		$whitelist_controller->register_hooks();
+		$allowlist_controller->register_hooks();
 	}
 
 	public function register_runtime_hooks() {

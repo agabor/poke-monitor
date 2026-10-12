@@ -1,10 +1,10 @@
 <?php
 
-namespace PokeMonitor\Admin;
+namespace Poke_Monitor\Admin;
 
-use PokeMonitor\Cf_Detector;
-use PokeMonitor\Repository;
-use PokeMonitor\Schema;
+use Poke_Monitor\Cf_Detector;
+use Poke_Monitor\Repository;
+use Poke_Monitor\Schema;
 
 defined( 'ABSPATH' ) || exit;
 

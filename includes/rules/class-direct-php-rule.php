@@ -1,8 +1,8 @@
 <?php
 
-namespace PokeMonitor\Rules;
+namespace Poke_Monitor\Rules;
 
-use PokeMonitor\Request_Context;
+use Poke_Monitor\Request_Context;
 
 defined( 'ABSPATH' ) || exit;
 

@@ -20,7 +20,7 @@ Planned improvements after the 1.0.0 wp.org review. Items are ordered by priorit
 ### 2. Verify Cloudflare by IP range, not just by headers
 
 **Problem.** "Came through Cloudflare" is decided by the presence of `CF-Ray`, `CF-IPCountry` and `CF-Visitor`. This has two consequences:
-- **Whitelist evasion:** a request carrying forged CF headers plus `CF-Connecting-IP: <whitelisted IP>` is treated as that whitelisted IP and suppressed. An attacker only needs to know a whitelisted address; uptime-monitor ranges are often public.
+- **Allowlist evasion:** a request carrying forged CF headers plus `CF-Connecting-IP: <allowlisted IP>` is treated as that allowlisted IP and suppressed. An attacker only needs to know a allowlisted address; uptime-monitor ranges are often public.
 - **False bypasses:** `CF-IPCountry` is only sent when *IP Geolocation* is enabled in Cloudflare. If it is turned off while bypass detection is on, every visitor is logged as a Cloudflare Bypass.
 
 **Plan.**
@@ -32,7 +32,7 @@ Planned improvements after the 1.0.0 wp.org review. Items are ordered by priorit
 - Note in the readme that the list is updated with plugin releases; mention the filter for sites behind another proxy layer.
 - Keep `delete_requests_by_ip()` consistent with the new trust definition (store a `via_cloudflare` flag on the request row, rather than re-deriving it from header columns).
 
-**Done when.** Forged headers are logged as bypass, whitelist matching cannot be spoofed via `CF-Connecting-IP`, and turning off IP Geolocation no longer floods the log.
+**Done when.** Forged headers are logged as bypass, allowlist matching cannot be spoofed via `CF-Connecting-IP`, and turning off IP Geolocation no longer floods the log.
 
 ### 3. Throttle logging under load
 
@@ -81,7 +81,7 @@ In `Logger::write_log_entry()`, the two upserts run before `START TRANSACTION`, 
 Retention is hard-coded to 30 days (`Cron::KEEP_DAYS`). Add a `poke_monitor_keep_days` filter now, and a setting later if users ask for it. Update the readme FAQ and privacy section to mention it.
 
 ### 10. Tests and CI
-- The rule classes (`Probe_Rule`, `Suspicious_Ua_Rule`, `Direct_Php_Rule`, `Xmlrpc_Rule`), `Request_Context::normalize_path()`, `Whitelist::sanitize_input()` and the planned Cloudflare range check are pure or nearly pure, so they are ideal for unit tests.
+- The rule classes (`Probe_Rule`, `Suspicious_Ua_Rule`, `Direct_Php_Rule`, `Xmlrpc_Rule`), `Request_Context::normalize_path()`, `Allowlist::sanitize_input()` and the planned Cloudflare range check are pure or nearly pure, so they are ideal for unit tests.
 - Add a GitHub Actions workflow running PHPCS (WordPress standard), Plugin Check, and the unit tests on PHP 7.4 and the latest PHP.
 
 ---

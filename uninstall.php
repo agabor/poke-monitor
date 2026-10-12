@@ -18,7 +18,7 @@ function poke_monitor_uninstall_site(): void {
 	);
 
 	foreach ( $table_suffixes_children_first as $table_suffix ) {
-		$table_name = \PokeMonitor\Schema::get_table_name( $table_suffix );
+		$table_name = \Poke_Monitor\Schema::get_table_name( $table_suffix );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table_name ) );
@@ -27,7 +27,7 @@ function poke_monitor_uninstall_site(): void {
 	$option_names = array(
 		'poke_monitor_cf_status',
 		'poke_monitor_settings',
-		'poke_monitor_whitelist',
+		'poke_monitor_allowlist',
 		'poke_monitor_db_version',
 	);
 

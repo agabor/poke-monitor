@@ -1,12 +1,12 @@
 <?php
 
-namespace PokeMonitor;
+namespace Poke_Monitor;
 
 defined( 'ABSPATH' ) || exit;
 
-class Whitelist {
+class Allowlist {
 
-	const OPTION_NAME = 'poke_monitor_whitelist';
+	const OPTION_NAME = 'poke_monitor_allowlist';
 
 	const TYPE_IP = 'ip';
 
@@ -117,24 +117,24 @@ class Whitelist {
 		$type = isset( $input['type'] ) ? sanitize_key( (string) $input['type'] ) : '';
 
 		if ( ! in_array( $type, array( self::TYPE_IP, self::TYPE_UA ), true ) ) {
-			return new \WP_Error( 'poke_monitor_whitelist_invalid_type', __( 'Choose IP or User-Agent as the entry type.', 'poke-monitor' ) );
+			return new \WP_Error( 'poke_monitor_allowlist_invalid_type', __( 'Choose IP or User-Agent as the entry type.', 'poke-monitor' ) );
 		}
 
 		$raw_value = isset( $input['value'] ) ? (string) $input['value'] : '';
 		$value     = $this->normalize_value( $type, $raw_value );
 
 		if ( null === $value ) {
-			return new \WP_Error( 'poke_monitor_whitelist_invalid_value', $this->get_invalid_value_message( $type ) );
+			return new \WP_Error( 'poke_monitor_allowlist_invalid_value', $this->get_invalid_value_message( $type ) );
 		}
 
 		$categories = $this->parse_categories( isset( $input['categories'] ) ? $input['categories'] : self::CATEGORY_ALL );
 
 		if ( ! $this->are_categories_valid( $categories ) ) {
-			return new \WP_Error( 'poke_monitor_whitelist_invalid_categories', __( 'Choose at least one valid category.', 'poke-monitor' ) );
+			return new \WP_Error( 'poke_monitor_allowlist_invalid_categories', __( 'Choose at least one valid category.', 'poke-monitor' ) );
 		}
 
 		if ( $this->is_duplicate( $type, $value, $ignore_id ) ) {
-			return new \WP_Error( 'poke_monitor_whitelist_duplicate', __( 'This entry is already on the whitelist.', 'poke-monitor' ) );
+			return new \WP_Error( 'poke_monitor_allowlist_duplicate', __( 'This entry is already on the allowlist.', 'poke-monitor' ) );
 		}
 
 		return array(
@@ -276,7 +276,7 @@ class Whitelist {
 			return __( 'Enter a valid IPv4 or IPv6 address.', 'poke-monitor' );
 		}
 
-		return __( 'Enter a User-Agent. A missing User-Agent cannot be whitelisted.', 'poke-monitor' );
+		return __( 'Enter a User-Agent. A missing User-Agent cannot be allowlisted.', 'poke-monitor' );
 	}
 
 	private function are_categories_valid( $categories ): bool {
@@ -328,7 +328,7 @@ class Whitelist {
 	}
 
 	private function build_not_found_error(): \WP_Error {
-		return new \WP_Error( 'poke_monitor_whitelist_not_found', __( 'Whitelist entry not found.', 'poke-monitor' ) );
+		return new \WP_Error( 'poke_monitor_allowlist_not_found', __( 'Allowlist entry not found.', 'poke-monitor' ) );
 	}
 
 	private function generate_id(): string {

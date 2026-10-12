@@ -13,9 +13,9 @@
 		errorGeneric: 'Something went wrong. Please try again.',
 		on: 'On',
 		off: 'Off',
-		confirmDeleteEntry: 'Remove this entry from the whitelist?',
-		addEntryTitle: 'Add whitelist entry',
-		editEntryTitle: 'Edit whitelist entry',
+		confirmDeleteEntry: 'Remove this entry from the allowlist?',
+		addEntryTitle: 'Add allowlist entry',
+		editEntryTitle: 'Edit allowlist entry',
 		noCurrentIp: 'Your current IP address could not be determined.',
 		ipPlaceholder: '203.0.113.7',
 		uaPlaceholder: 'Mozilla/5.0 (compatible; MyMonitor/1.0)'
@@ -235,28 +235,28 @@
 		return parseJsonAttribute( button, 'data-entry' );
 	}
 
-	function initWhitelist() {
-		const form = document.getElementById( 'poke-monitor-wl-form' );
+	function initAllowlist() {
+		const form = document.getElementById( 'poke-monitor-al-form' );
 
 		if ( ! form ) {
 			return;
 		}
 
-		const modalElement = document.getElementById( 'poke-monitor-wl-modal' );
+		const modalElement = document.getElementById( 'poke-monitor-al-modal' );
 		const container = modalElement || form;
 		const isModal = Boolean( modalElement );
-		const titleElement = document.getElementById( 'poke-monitor-wl-title' );
-		const idField = document.getElementById( 'poke-monitor-wl-id' );
-		const typeField = document.getElementById( 'poke-monitor-wl-type' );
-		const valueField = document.getElementById( 'poke-monitor-wl-value' );
-		const noteField = document.getElementById( 'poke-monitor-wl-note' );
-		const deleteExistingField = document.getElementById( 'poke-monitor-wl-delete-existing' );
-		const errorElement = document.getElementById( 'poke-monitor-wl-error' );
-		const saveButton = document.getElementById( 'poke-monitor-wl-save' );
-		const cancelButton = document.getElementById( 'poke-monitor-wl-cancel' );
-		const addButton = document.getElementById( 'poke-monitor-wl-add' );
-		const addCurrentIpButton = document.getElementById( 'poke-monitor-wl-add-current-ip' );
-		const categoryBoxes = Array.prototype.slice.call( form.querySelectorAll( '.poke-monitor-wl-category' ) );
+		const titleElement = document.getElementById( 'poke-monitor-al-title' );
+		const idField = document.getElementById( 'poke-monitor-al-id' );
+		const typeField = document.getElementById( 'poke-monitor-al-type' );
+		const valueField = document.getElementById( 'poke-monitor-al-value' );
+		const noteField = document.getElementById( 'poke-monitor-al-note' );
+		const deleteExistingField = document.getElementById( 'poke-monitor-al-delete-existing' );
+		const errorElement = document.getElementById( 'poke-monitor-al-error' );
+		const saveButton = document.getElementById( 'poke-monitor-al-save' );
+		const cancelButton = document.getElementById( 'poke-monitor-al-cancel' );
+		const addButton = document.getElementById( 'poke-monitor-al-add' );
+		const addCurrentIpButton = document.getElementById( 'poke-monitor-al-add-current-ip' );
+		const categoryBoxes = Array.prototype.slice.call( form.querySelectorAll( '.poke-monitor-al-category' ) );
 
 		function showFormError( message ) {
 			errorElement.textContent = message;
@@ -303,7 +303,7 @@
 			} );
 		}
 
-		function openWhitelistForm( mode, entry ) {
+		function openAllowlistForm( mode, entry ) {
 			const entryData = entry || {};
 
 			titleElement.textContent = 'edit' === mode ? getString( 'editEntryTitle' ) : getString( 'addEntryTitle' );
@@ -320,22 +320,22 @@
 			container.hidden = false;
 
 			if ( isModal ) {
-				document.body.classList.add( 'modal-open' );
+				document.body.classList.add( 'poke-monitor-modal-open' );
 			}
 
 			valueField.focus();
 		}
 
-		function closeWhitelistForm() {
+		function closeAllowlistForm() {
 			container.hidden = true;
 			clearFormError();
 
 			if ( isModal ) {
-				document.body.classList.remove( 'modal-open' );
+				document.body.classList.remove( 'poke-monitor-modal-open' );
 			}
 		}
 
-		function collectWhitelistFormData() {
+		function collectAllowlistFormData() {
 			const checkedCategories = categoryBoxes
 				.filter( function ( box ) {
 					return box.checked;
@@ -359,11 +359,11 @@
 			return data;
 		}
 
-		function submitWhitelistForm( event ) {
+		function submitAllowlistForm( event ) {
 			event.preventDefault();
 
-			const data = collectWhitelistFormData();
-			const action = data.id ? 'poke_monitor_whitelist_update' : 'poke_monitor_whitelist_add';
+			const data = collectAllowlistFormData();
+			const action = data.id ? 'poke_monitor_allowlist_update' : 'poke_monitor_allowlist_add';
 
 			clearFormError();
 			saveButton.disabled = true;
@@ -392,7 +392,7 @@
 				return;
 			}
 
-			openWhitelistForm( 'add', { type: 'ip', value: currentIp, categories: 'all' } );
+			openAllowlistForm( 'add', { type: 'ip', value: currentIp, categories: 'all' } );
 		}
 
 		function handleDeleteEntry( button ) {
@@ -404,7 +404,7 @@
 
 			button.disabled = true;
 
-			postAjax( 'poke_monitor_whitelist_delete', { id: entry.id } )
+			postAjax( 'poke_monitor_allowlist_delete', { id: entry.id } )
 				.then( function ( response ) {
 					if ( ! response || ! response.success ) {
 						button.disabled = false;
@@ -424,16 +424,16 @@
 			const entry = parseEntryData( button );
 
 			if ( entry ) {
-				openWhitelistForm( 'edit', entry );
+				openAllowlistForm( 'edit', entry );
 			}
 		}
 
-		function handleRowWhitelistButton( button ) {
+		function handleRowAllowlistButton( button ) {
 			if ( '' !== ( button.getAttribute( 'data-existing' ) || '' ) ) {
 				const existingEntry = parseJsonAttribute( button, 'data-existing' );
 
 				if ( existingEntry ) {
-					openWhitelistForm( 'edit', existingEntry );
+					openAllowlistForm( 'edit', existingEntry );
 					return;
 				}
 			}
@@ -441,27 +441,27 @@
 			const prefillEntry = parseJsonAttribute( button, 'data-prefill' );
 
 			if ( prefillEntry ) {
-				openWhitelistForm( 'add', prefillEntry );
+				openAllowlistForm( 'add', prefillEntry );
 			}
 		}
 
 		function handleContainerClick( event ) {
-			const clickedBackdrop = event.target === container || event.target.classList.contains( 'poke-monitor-wl-modal__backdrop' );
+			const clickedBackdrop = event.target === container || event.target.classList.contains( 'poke-monitor-al-modal__backdrop' );
 
 			if ( isModal && clickedBackdrop ) {
-				closeWhitelistForm();
+				closeAllowlistForm();
 			}
 		}
 
 		function handleEscapeKey( event ) {
 			if ( isModal && 'Escape' === event.key && ! container.hidden ) {
-				closeWhitelistForm();
+				closeAllowlistForm();
 			}
 		}
 
 		if ( addButton ) {
 			addButton.addEventListener( 'click', function () {
-				openWhitelistForm( 'add', {} );
+				openAllowlistForm( 'add', {} );
 			} );
 		}
 
@@ -470,11 +470,11 @@
 		}
 
 		if ( cancelButton ) {
-			cancelButton.addEventListener( 'click', closeWhitelistForm );
+			cancelButton.addEventListener( 'click', closeAllowlistForm );
 		}
 
 		typeField.addEventListener( 'change', updateValuePlaceholder );
-		form.addEventListener( 'submit', submitWhitelistForm );
+		form.addEventListener( 'submit', submitAllowlistForm );
 		container.addEventListener( 'click', handleContainerClick );
 		document.addEventListener( 'keydown', handleEscapeKey );
 
@@ -484,25 +484,25 @@
 			} );
 		} );
 
-		Array.prototype.forEach.call( document.querySelectorAll( '.poke-monitor-wl-edit' ), function ( button ) {
+		Array.prototype.forEach.call( document.querySelectorAll( '.poke-monitor-al-edit' ), function ( button ) {
 			button.addEventListener( 'click', function () {
 				handleEditEntry( button );
 			} );
 		} );
 
-		Array.prototype.forEach.call( document.querySelectorAll( '.poke-monitor-wl-delete' ), function ( button ) {
+		Array.prototype.forEach.call( document.querySelectorAll( '.poke-monitor-al-delete' ), function ( button ) {
 			button.addEventListener( 'click', function () {
 				handleDeleteEntry( button );
 			} );
 		} );
 
-		Array.prototype.forEach.call( document.querySelectorAll( '.poke-monitor-wl-row-button' ), function ( button ) {
+		Array.prototype.forEach.call( document.querySelectorAll( '.poke-monitor-al-row-button' ), function ( button ) {
 			if ( button.disabled ) {
 				return;
 			}
 
 			button.addEventListener( 'click', function () {
-				handleRowWhitelistButton( button );
+				handleRowAllowlistButton( button );
 			} );
 		} );
 
@@ -513,7 +513,7 @@
 		initCloudflareSwitch();
 		initClearType();
 		initClearAll();
-		initWhitelist();
+		initAllowlist();
 	}
 
 	if ( 'loading' === document.readyState ) {

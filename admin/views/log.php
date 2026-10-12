@@ -5,7 +5,7 @@ defined( 'ABSPATH' ) || exit;
 <div class="wrap poke-monitor-wrap">
 	<h1 class="poke-monitor-title"><?php esc_html_e( 'Poke Monitor', 'poke-monitor' ); ?></h1>
 
-	<?php \PokeMonitor\Admin\View::render( 'section-nav', array( 'sections' => $sections ) ); ?>
+	<?php \Poke_Monitor\Admin\View::render( 'section-nav', array( 'sections' => $sections ) ); ?>
 
 	<div class="poke-monitor-card poke-monitor-cf-card">
 		<p class="poke-monitor-cf-note poke-monitor-cf-note--<?php echo esc_attr( $cloudflare['live_note']['status'] ); ?>">
@@ -37,15 +37,15 @@ defined( 'ABSPATH' ) || exit;
 	</div>
 
 	<nav class="poke-monitor-tabs" aria-label="<?php esc_attr_e( 'Error types', 'poke-monitor' ); ?>">
-		<?php foreach ( $tabs as $tab ) : ?>
+		<?php foreach ($tabs as $poke_monitor_tab ) : ?>
 			<a
-				class="<?php echo esc_attr( $tab['css_classes'] ); ?>"
-				href="<?php echo esc_url( $tab['url'] ); ?>"
-				<?php echo ! empty( $tab['is_active'] ) ? 'aria-current="page"' : ''; ?>
+				class="<?php echo esc_attr( $poke_monitor_tab['css_classes'] ); ?>"
+				href="<?php echo esc_url( $poke_monitor_tab['url'] ); ?>"
+				<?php echo ! empty( $poke_monitor_tab['is_active'] ) ? 'aria-current="page"' : ''; ?>
 			>
-				<span class="poke-monitor-tab__label"><?php echo esc_html( $tab['label'] ); ?></span>
-				<span class="poke-monitor-tab__count"<?php echo '' !== $tab['tooltip'] ? ' title="' . esc_attr( $tab['tooltip'] ) . '"' : ''; ?>><?php echo esc_html( number_format_i18n( (int) $tab['count'] ) ); ?></span>
-				<?php if ( ! empty( $tab['is_detection_off'] ) ) : ?>
+				<span class="poke-monitor-tab__label"><?php echo esc_html( $poke_monitor_tab['label'] ); ?></span>
+				<span class="poke-monitor-tab__count"<?php echo '' !== $poke_monitor_tab['tooltip'] ? ' title="' . esc_attr( $poke_monitor_tab['tooltip'] ) . '"' : ''; ?>><?php echo esc_html( number_format_i18n( (int) $poke_monitor_tab['count'] ) ); ?></span>
+				<?php if ( ! empty( $poke_monitor_tab['is_detection_off'] ) ) : ?>
 					<span class="poke-monitor-tab__note"><?php esc_html_e( 'detection off', 'poke-monitor' ); ?></span>
 				<?php endif; ?>
 			</a>
@@ -76,7 +76,7 @@ defined( 'ABSPATH' ) || exit;
 							</th>
 							<th scope="col"><?php esc_html_e( 'IP', 'poke-monitor' ); ?></th>
 							<th scope="col"><?php echo esc_html( $badge_column_label ); ?></th>
-							<th scope="col"><?php esc_html_e( 'Whitelist', 'poke-monitor' ); ?></th>
+							<th scope="col"><?php esc_html_e( 'Allowlist', 'poke-monitor' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -100,17 +100,17 @@ defined( 'ABSPATH' ) || exit;
 										<a class="poke-monitor-badge <?php echo esc_attr( $poke_monitor_badge['badge_class'] ); ?>" href="<?php echo esc_url( $poke_monitor_badge['url'] ); ?>"><?php echo esc_html( $poke_monitor_badge['label'] ); ?></a>
 									<?php endforeach; ?>
 								</td>
-								<td class="poke-monitor-cell poke-monitor-cell--whitelist">
-									<?php foreach ( $poke_monitor_row['whitelist'] as $poke_monitor_button_kind => $poke_monitor_whitelist_button ) : ?>
+								<td class="poke-monitor-cell poke-monitor-cell--allowlist">
+									<?php foreach ( $poke_monitor_row['allowlist'] as $poke_monitor_button_kind => $poke_monitor_allowlist_button ) : ?>
 										<button
 											type="button"
-											class="button button-small poke-monitor-wl-row-button<?php echo ! empty( $poke_monitor_whitelist_button['exists'] ) ? ' is-existing' : ''; ?>"
+											class="button button-small poke-monitor-al-row-button<?php echo ! empty( $poke_monitor_allowlist_button['exists'] ) ? ' is-existing' : ''; ?>"
 											data-kind="<?php echo esc_attr( $poke_monitor_button_kind ); ?>"
-											data-prefill="<?php echo esc_attr( $poke_monitor_whitelist_button['prefill_json'] ); ?>"
-											data-existing="<?php echo esc_attr( $poke_monitor_whitelist_button['existing_json'] ); ?>"
-											title="<?php echo esc_attr( $poke_monitor_whitelist_button['title'] ); ?>"
-											<?php disabled( ! empty( $poke_monitor_whitelist_button['disabled'] ) ); ?>
-										><?php echo esc_html( ( ! empty( $poke_monitor_whitelist_button['exists'] ) ? '✓ ' : '+ ' ) . $poke_monitor_whitelist_button['label'] ); ?></button>
+											data-prefill="<?php echo esc_attr( $poke_monitor_allowlist_button['prefill_json'] ); ?>"
+											data-existing="<?php echo esc_attr( $poke_monitor_allowlist_button['existing_json'] ); ?>"
+											title="<?php echo esc_attr( $poke_monitor_allowlist_button['title'] ); ?>"
+											<?php disabled( ! empty( $poke_monitor_allowlist_button['disabled'] ) ); ?>
+										><?php echo esc_html( ( ! empty( $poke_monitor_allowlist_button['exists'] ) ? '✓ ' : '+ ' ) . $poke_monitor_allowlist_button['label'] ); ?></button>
 									<?php endforeach; ?>
 								</td>
 							</tr>
@@ -195,8 +195,8 @@ defined( 'ABSPATH' ) || exit;
 	</div>
 
 	<?php
-	\PokeMonitor\Admin\View::render(
-		'whitelist-form',
+	\Poke_Monitor\Admin\View::render(
+		'allowlist-form',
 		array(
 			'category_options' => $category_options,
 			'ua_hint'          => $ua_hint,

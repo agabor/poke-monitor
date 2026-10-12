@@ -1,32 +1,32 @@
 <?php
 
-namespace PokeMonitor\Admin;
+namespace Poke_Monitor\Admin;
 
-use PokeMonitor\Ip_Resolver;
-use PokeMonitor\Repository;
-use PokeMonitor\Request_Context;
-use PokeMonitor\Whitelist;
+use Poke_Monitor\Ip_Resolver;
+use Poke_Monitor\Repository;
+use Poke_Monitor\Request_Context;
+use Poke_Monitor\Allowlist;
 
 defined( 'ABSPATH' ) || exit;
 
-class Whitelist_Controller {
+class Allowlist_Controller {
 
 	private $repository;
 
-	private $whitelist;
+	private $allowlist;
 
 	private $ip_resolver;
 
 	public function __construct( Repository $repository ) {
 		$this->repository  = $repository;
-		$this->whitelist   = new Whitelist();
+		$this->allowlist   = new Allowlist();
 		$this->ip_resolver = new Ip_Resolver();
 	}
 
 	public function register_hooks(): void {
-		add_action( 'wp_ajax_poke_monitor_whitelist_add', array( $this, 'ajax_whitelist_add' ) );
-		add_action( 'wp_ajax_poke_monitor_whitelist_update', array( $this, 'ajax_whitelist_update' ) );
-		add_action( 'wp_ajax_poke_monitor_whitelist_delete', array( $this, 'ajax_whitelist_delete' ) );
+		add_action( 'wp_ajax_poke_monitor_allowlist_add', array( $this, 'ajax_allowlist_add' ) );
+		add_action( 'wp_ajax_poke_monitor_allowlist_update', array( $this, 'ajax_allowlist_update' ) );
+		add_action( 'wp_ajax_poke_monitor_allowlist_delete', array( $this, 'ajax_allowlist_delete' ) );
 	}
 
 	public function verify_request(): void {
@@ -40,30 +40,30 @@ class Whitelist_Controller {
 		}
 	}
 
-	public function ajax_whitelist_add(): void {
+	public function ajax_allowlist_add(): void {
 		$this->verify_request();
 
 		$posted_input = $this->read_input();
-		$entry        = $this->whitelist->add_entry( $posted_input, get_current_user_id() );
+		$entry        = $this->allowlist->add_entry( $posted_input, get_current_user_id() );
 
 		$this->send_entry_response( $entry, $posted_input['delete_existing'] );
 	}
 
-	public function ajax_whitelist_update(): void {
+	public function ajax_allowlist_update(): void {
 		$this->verify_request();
 
 		$posted_input = $this->read_input();
-		$entry        = $this->whitelist->update_entry( $this->read_entry_id(), $posted_input );
+		$entry        = $this->allowlist->update_entry( $this->read_entry_id(), $posted_input );
 
 		$this->send_entry_response( $entry, $posted_input['delete_existing'] );
 	}
 
-	public function ajax_whitelist_delete(): void {
+	public function ajax_allowlist_delete(): void {
 		$this->verify_request();
 
-		if ( ! $this->whitelist->delete_entry( $this->read_entry_id() ) ) {
+		if ( ! $this->allowlist->delete_entry( $this->read_entry_id() ) ) {
 			wp_send_json_error(
-				array( 'message' => __( 'Whitelist entry not found.', 'poke-monitor' ) ),
+				array( 'message' => __( 'Allowlist entry not found.', 'poke-monitor' ) ),
 				404
 			);
 		}
@@ -97,7 +97,7 @@ class Whitelist_Controller {
 		return array(
 			'type'            => isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in verify_request() by every caller.
 			'value'           => $this->read_value(),
-			'categories'      => isset( $_POST['categories'] ) ? sanitize_text_field( wp_unslash( $_POST['categories'] ) ) : Whitelist::CATEGORY_ALL, // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in verify_request() by every caller.
+			'categories'      => isset( $_POST['categories'] ) ? sanitize_text_field( wp_unslash( $_POST['categories'] ) ) : Allowlist::CATEGORY_ALL, // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in verify_request() by every caller.
 			'note'            => isset( $_POST['note'] ) ? sanitize_text_field( wp_unslash( $_POST['note'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in verify_request() by every caller.
 			'delete_existing' => isset( $_POST['delete_existing'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['delete_existing'] ) ), // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in verify_request() by every caller.
 		);
@@ -114,11 +114,11 @@ class Whitelist_Controller {
 	}
 
 	private function purge_existing_rows( array $entry ): int {
-		$error_type_ids = Whitelist::CATEGORY_ALL === $entry['categories']
+		$error_type_ids = Allowlist::CATEGORY_ALL === $entry['categories']
 			? array()
 			: array_map( 'intval', (array) $entry['categories'] );
 
-		if ( Whitelist::TYPE_IP === $entry['type'] ) {
+		if ( Allowlist::TYPE_IP === $entry['type'] ) {
 			$binary_ip = $this->ip_resolver->to_binary( $entry['value'] );
 
 			return null === $binary_ip ? 0 : $this->repository->delete_requests_by_ip( $binary_ip, $error_type_ids );

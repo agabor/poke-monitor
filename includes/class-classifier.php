@@ -1,12 +1,12 @@
 <?php
 
-namespace PokeMonitor;
+namespace Poke_Monitor;
 
-use PokeMonitor\Rules\Cf_Bypass_Rule;
-use PokeMonitor\Rules\Probe_Rule;
-use PokeMonitor\Rules\Direct_Php_Rule;
-use PokeMonitor\Rules\Xmlrpc_Rule;
-use PokeMonitor\Rules\Suspicious_Ua_Rule;
+use Poke_Monitor\Rules\Cf_Bypass_Rule;
+use Poke_Monitor\Rules\Probe_Rule;
+use Poke_Monitor\Rules\Direct_Php_Rule;
+use Poke_Monitor\Rules\Xmlrpc_Rule;
+use Poke_Monitor\Rules\Suspicious_Ua_Rule;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -23,7 +23,7 @@ class Classifier {
 
 	private $suspicious_ua_rule;
 
-	private $whitelist;
+	private $allowlist;
 
 	public function __construct(
 		Cf_Bypass_Rule $cf_bypass_rule,
@@ -31,14 +31,14 @@ class Classifier {
 		Direct_Php_Rule $direct_php_rule,
 		Xmlrpc_Rule $xmlrpc_rule,
 		Suspicious_Ua_Rule $suspicious_ua_rule,
-		Whitelist $whitelist
+		Allowlist $allowlist
 	) {
 		$this->cf_bypass_rule     = $cf_bypass_rule;
 		$this->probe_rule         = $probe_rule;
 		$this->direct_php_rule    = $direct_php_rule;
 		$this->xmlrpc_rule        = $xmlrpc_rule;
 		$this->suspicious_ua_rule = $suspicious_ua_rule;
-		$this->whitelist          = $whitelist;
+		$this->allowlist          = $allowlist;
 	}
 
 	public function should_skip( Request_Context $context ) {
@@ -95,7 +95,7 @@ class Classifier {
 
 		$all_matches = $target_matches + $origin_matches;
 
-		return $this->filter_whitelisted( $all_matches, $context );
+		return $this->filter_allowlisted( $all_matches, $context );
 	}
 
 	private function evaluate_target_rules( Request_Context $context ) {
@@ -128,12 +128,12 @@ class Classifier {
 		return $origin_matches;
 	}
 
-	public function filter_whitelisted( array $matches, Request_Context $context ) {
+	public function filter_allowlisted( array $matches, Request_Context $context ) {
 		if ( empty( $matches ) ) {
 			return $matches;
 		}
 
-		$suppressed_error_type_ids = $this->whitelist->get_suppressed_error_type_ids( $context );
+		$suppressed_error_type_ids = $this->allowlist->get_suppressed_error_type_ids( $context );
 
 		return array_diff_key( $matches, array_flip( $suppressed_error_type_ids ) );
 	}

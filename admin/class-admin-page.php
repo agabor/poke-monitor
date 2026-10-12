@@ -1,14 +1,14 @@
 <?php
 
-namespace PokeMonitor\Admin;
+namespace Poke_Monitor\Admin;
 
-use PokeMonitor\Cf_Detector;
-use PokeMonitor\Cron;
-use PokeMonitor\Ip_Resolver;
-use PokeMonitor\Repository;
-use PokeMonitor\Request_Context;
-use PokeMonitor\Schema;
-use PokeMonitor\Whitelist;
+use Poke_Monitor\Cf_Detector;
+use Poke_Monitor\Cron;
+use Poke_Monitor\Ip_Resolver;
+use Poke_Monitor\Repository;
+use Poke_Monitor\Request_Context;
+use Poke_Monitor\Schema;
+use Poke_Monitor\Allowlist;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -26,20 +26,20 @@ class Admin_Page {
 
 	const SECTION_LOG = 'log';
 
-	const SECTION_WHITELIST = 'whitelist';
+	const SECTION_ALLOWLIST = 'allowlist';
 
 	private $repository;
 
 	private $ip_resolver;
 
-	private $whitelist;
+	private $allowlist;
 
 	private $page_hook = '';
 
 	public function __construct( Repository $repository ) {
 		$this->repository  = $repository;
 		$this->ip_resolver = new Ip_Resolver();
-		$this->whitelist   = new Whitelist();
+		$this->allowlist   = new Allowlist();
 	}
 
 	public function register_hooks(): void {
@@ -107,9 +107,9 @@ class Admin_Page {
 					'errorGeneric'                   => __( 'Something went wrong. Please try again.', 'poke-monitor' ),
 					'on'                             => __( 'On', 'poke-monitor' ),
 					'off'                            => __( 'Off', 'poke-monitor' ),
-					'confirmDeleteEntry'             => __( 'Remove this entry from the whitelist?', 'poke-monitor' ),
-					'addEntryTitle'                  => __( 'Add whitelist entry', 'poke-monitor' ),
-					'editEntryTitle'                 => __( 'Edit whitelist entry', 'poke-monitor' ),
+					'confirmDeleteEntry'             => __( 'Remove this entry from the allowlist?', 'poke-monitor' ),
+					'addEntryTitle'                  => __( 'Add allowlist entry', 'poke-monitor' ),
+					'editEntryTitle'                 => __( 'Edit allowlist entry', 'poke-monitor' ),
 					'noCurrentIp'                    => __( 'Your current IP address could not be determined.', 'poke-monitor' ),
 					'ipPlaceholder'                  => __( '203.0.113.7', 'poke-monitor' ),
 					'uaPlaceholder'                  => __( 'Mozilla/5.0 (compatible; MyMonitor/1.0)', 'poke-monitor' ),
@@ -123,8 +123,8 @@ class Admin_Page {
 			wp_die( esc_html__( 'You do not have permission to access this page.', 'poke-monitor' ) );
 		}
 
-		if ( self::SECTION_WHITELIST === $this->get_current_section() ) {
-			View::render( 'whitelist', $this->get_whitelist_view_data() );
+		if ( self::SECTION_ALLOWLIST === $this->get_current_section() ) {
+			View::render( 'allowlist', $this->get_allowlist_view_data() );
 
 			return;
 		}
@@ -135,7 +135,7 @@ class Admin_Page {
 	public function get_current_section(): string {
 		$requested_section = isset( $_GET[ self::SECTION_PARAM ] ) ? sanitize_key( wp_unslash( $_GET[ self::SECTION_PARAM ] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only navigation parameter.
 
-		return self::SECTION_WHITELIST === $requested_section ? self::SECTION_WHITELIST : self::SECTION_LOG;
+		return self::SECTION_ALLOWLIST === $requested_section ? self::SECTION_ALLOWLIST : self::SECTION_LOG;
 	}
 
 	public function build_section_url( string $section ): string {
@@ -149,7 +149,7 @@ class Admin_Page {
 	public function get_section_view_models( string $current_section ): array {
 		$section_labels = array(
 			self::SECTION_LOG       => __( 'Log', 'poke-monitor' ),
-			self::SECTION_WHITELIST => __( 'Whitelist', 'poke-monitor' ),
+			self::SECTION_ALLOWLIST => __( 'Allowlist', 'poke-monitor' ),
 		);
 
 		$sections = array();
@@ -286,14 +286,14 @@ class Admin_Page {
 		$tabs_by_error_type_id   = $this->index_tabs_by_error_type_id( $tabs );
 		$cloudflare_status       = Cf_Detector::get_status();
 		$cloudflare_live_note    = Cf_Detector::get_live_note();
-		$whitelist_lookup        = $this->build_whitelist_lookup();
+		$allowlist_lookup        = $this->build_allowlist_lookup();
 
 		$rows = array();
 
 		foreach ( $requests as $request_row ) {
 			$row_error_types = isset( $error_types_by_request[ (int) $request_row->id ] ) ? $error_types_by_request[ (int) $request_row->id ] : array();
 
-			$rows[] = $this->build_row_view_model( $request_row, $row_error_types, $current_error_type_id, $tabs_by_error_type_id, $whitelist_lookup );
+			$rows[] = $this->build_row_view_model( $request_row, $row_error_types, $current_error_type_id, $tabs_by_error_type_id, $allowlist_lookup );
 		}
 
 		$pagination_base_url = $this->build_page_url(
@@ -329,18 +329,18 @@ class Admin_Page {
 		);
 	}
 
-	public function get_whitelist_view_data(): array {
+	public function get_allowlist_view_data(): array {
 		$entries = array();
 
-		foreach ( $this->whitelist->get_entries() as $entry ) {
-			$entries[] = $this->build_whitelist_entry_view_model( $entry );
+		foreach ( $this->allowlist->get_entries() as $entry ) {
+			$entries[] = $this->build_allowlist_entry_view_model( $entry );
 		}
 
 		return array(
-			'sections'         => $this->get_section_view_models( self::SECTION_WHITELIST ),
+			'sections'         => $this->get_section_view_models( self::SECTION_ALLOWLIST ),
 			'entries'          => $entries,
 			'category_options' => $this->build_category_options(),
-			'current_ip'       => $this->whitelist->resolve_ip_for_matching( Request_Context::capture() ),
+			'current_ip'       => $this->allowlist->resolve_ip_for_matching( Request_Context::capture() ),
 			'ua_hint'          => $this->get_ua_hint(),
 		);
 	}
@@ -356,11 +356,11 @@ class Admin_Page {
 	}
 
 	private function get_ua_hint(): string {
-		return __( 'Library and monitor User-Agents, such as uptime checkers, can be whitelisted for Suspicious User Agent only, so their requests are still logged if they probe for other things.', 'poke-monitor' );
+		return __( 'Library and monitor User-Agents, such as uptime checkers, can be allowlisted for Suspicious User Agent only, so their requests are still logged if they probe for other things.', 'poke-monitor' );
 	}
 
-	public function describe_whitelist_categories( $categories ): string {
-		if ( Whitelist::CATEGORY_ALL === $categories ) {
+	public function describe_allowlist_categories( $categories ): string {
+		if ( Allowlist::CATEGORY_ALL === $categories ) {
 			return __( 'All', 'poke-monitor' );
 		}
 
@@ -415,8 +415,8 @@ class Admin_Page {
 		);
 	}
 
-	private function build_whitelist_entry_view_model( array $entry ): array {
-		$is_ip_entry  = Whitelist::TYPE_IP === $entry['type'];
+	private function build_allowlist_entry_view_model( array $entry ): array {
+		$is_ip_entry  = Allowlist::TYPE_IP === $entry['type'];
 		$creator      = ! empty( $entry['created_by'] ) ? get_userdata( (int) $entry['created_by'] ) : false;
 		$created_date = ! empty( $entry['created_at'] ) ? get_date_from_gmt( $entry['created_at'], 'Y-m-d H:i:s' ) : '';
 
@@ -424,7 +424,7 @@ class Admin_Page {
 			'type'       => (string) $entry['type'],
 			'type_label' => $is_ip_entry ? __( 'IP', 'poke-monitor' ) : __( 'UA', 'poke-monitor' ),
 			'value'      => (string) $entry['value'],
-			'applies_to' => $this->describe_whitelist_categories( $entry['categories'] ),
+			'applies_to' => $this->describe_allowlist_categories( $entry['categories'] ),
 			'note'       => (string) $entry['note'],
 			'created_at' => $created_date,
 			'created_by' => $creator ? $creator->display_name : '',
@@ -432,55 +432,55 @@ class Admin_Page {
 		);
 	}
 
-	private function build_whitelist_lookup(): array {
-		$whitelist_lookup = array();
+	private function build_allowlist_lookup(): array {
+		$allowlist_lookup = array();
 
-		foreach ( $this->whitelist->get_entries() as $entry ) {
-			$lookup_key                      = $this->build_whitelist_lookup_key( (string) $entry['type'], (string) $entry['value'] );
-			$whitelist_lookup[ $lookup_key ] = $this->build_whitelist_entry_view_model( $entry );
+		foreach ( $this->allowlist->get_entries() as $entry ) {
+			$lookup_key                      = $this->build_allowlist_lookup_key( (string) $entry['type'], (string) $entry['value'] );
+			$allowlist_lookup[ $lookup_key ] = $this->build_allowlist_entry_view_model( $entry );
 		}
 
-		return $whitelist_lookup;
+		return $allowlist_lookup;
 	}
 
-	private function build_whitelist_lookup_key( string $type, string $value ): string {
+	private function build_allowlist_lookup_key( string $type, string $value ): string {
 		return $type . "\n" . $value;
 	}
 
-	private function build_row_whitelist_view_model( $request_row, array $row_error_types, array $whitelist_lookup ): array {
+	private function build_row_allowlist_view_model( $request_row, array $row_error_types, array $allowlist_lookup ): array {
 		$error_type_ids = array_map( 'intval', array_keys( $row_error_types ) );
 
 		sort( $error_type_ids );
 
-		$prefill_categories = empty( $error_type_ids ) ? Whitelist::CATEGORY_ALL : $error_type_ids;
+		$prefill_categories = empty( $error_type_ids ) ? Allowlist::CATEGORY_ALL : $error_type_ids;
 		$user_agent_value   = null === $request_row->user_agent ? '' : (string) $request_row->user_agent;
 
 		return array(
-			Whitelist::TYPE_IP => $this->build_whitelist_button_view_model(
-				Whitelist::TYPE_IP,
-				$this->get_whitelist_ip_for_row( $request_row ),
+			Allowlist::TYPE_IP => $this->build_allowlist_button_view_model(
+				Allowlist::TYPE_IP,
+				$this->get_allowlist_ip_for_row( $request_row ),
 				$prefill_categories,
-				$whitelist_lookup
+				$allowlist_lookup
 			),
-			Whitelist::TYPE_UA => $this->build_whitelist_button_view_model(
-				Whitelist::TYPE_UA,
+			Allowlist::TYPE_UA => $this->build_allowlist_button_view_model(
+				Allowlist::TYPE_UA,
 				$user_agent_value,
 				$prefill_categories,
-				$whitelist_lookup
+				$allowlist_lookup
 			),
 		);
 	}
 
-	private function build_whitelist_button_view_model( string $type, string $value, $prefill_categories, array $whitelist_lookup ): array {
+	private function build_allowlist_button_view_model( string $type, string $value, $prefill_categories, array $allowlist_lookup ): array {
 		$is_disabled    = '' === $value;
-		$lookup_key     = $this->build_whitelist_lookup_key( $type, $value );
-		$existing_entry = ! $is_disabled && isset( $whitelist_lookup[ $lookup_key ] ) ? $whitelist_lookup[ $lookup_key ] : null;
+		$lookup_key     = $this->build_allowlist_lookup_key( $type, $value );
+		$existing_entry = ! $is_disabled && isset( $allowlist_lookup[ $lookup_key ] ) ? $allowlist_lookup[ $lookup_key ] : null;
 
 		return array(
-			'label'         => Whitelist::TYPE_UA === $type ? __( 'UA', 'poke-monitor' ) : __( 'IP', 'poke-monitor' ),
+			'label'         => Allowlist::TYPE_UA === $type ? __( 'UA', 'poke-monitor' ) : __( 'IP', 'poke-monitor' ),
 			'disabled'      => $is_disabled,
 			'exists'        => null !== $existing_entry,
-			'title'         => $this->get_whitelist_button_title( $type, null !== $existing_entry, $is_disabled ),
+			'title'         => $this->get_allowlist_button_title( $type, null !== $existing_entry, $is_disabled ),
 			'prefill_json'  => (string) wp_json_encode(
 				array(
 					'type'       => $type,
@@ -492,23 +492,23 @@ class Admin_Page {
 		);
 	}
 
-	private function get_whitelist_button_title( string $type, bool $exists, bool $is_disabled ): string {
+	private function get_allowlist_button_title( string $type, bool $exists, bool $is_disabled ): string {
 		if ( $is_disabled ) {
-			return Whitelist::TYPE_UA === $type
-				? __( 'A missing User-Agent cannot be whitelisted.', 'poke-monitor' )
+			return Allowlist::TYPE_UA === $type
+				? __( 'A missing User-Agent cannot be allowlisted.', 'poke-monitor' )
 				: __( 'No IP address is available for this request.', 'poke-monitor' );
 		}
 
 		if ( $exists ) {
-			return __( 'Already on the whitelist. Click to edit the entry.', 'poke-monitor' );
+			return __( 'Already on the allowlist. Click to edit the entry.', 'poke-monitor' );
 		}
 
-		return Whitelist::TYPE_UA === $type
-			? __( 'Add this User-Agent to the whitelist', 'poke-monitor' )
-			: __( 'Add this IP address to the whitelist', 'poke-monitor' );
+		return Allowlist::TYPE_UA === $type
+			? __( 'Add this User-Agent to the allowlist', 'poke-monitor' )
+			: __( 'Add this IP address to the allowlist', 'poke-monitor' );
 	}
 
-	private function get_whitelist_ip_for_row( $request_row ): string {
+	private function get_allowlist_ip_for_row( $request_row ): string {
 		$has_all_cf_headers = ! empty( $request_row->cf_ray ) && ! empty( $request_row->cf_ipcountry ) && ! empty( $request_row->cf_visitor );
 
 		return $has_all_cf_headers
@@ -645,7 +645,7 @@ class Admin_Page {
 		return $indexed_tabs;
 	}
 
-	private function build_row_view_model( $request_row, array $row_error_types, $current_error_type_id, array $tabs_by_error_type_id, array $whitelist_lookup ): array {
+	private function build_row_view_model( $request_row, array $row_error_types, $current_error_type_id, array $tabs_by_error_type_id, array $allowlist_lookup ): array {
 		$client_ip   = $this->format_ip( $request_row->client_ip );
 		$remote_addr = $this->format_ip( $request_row->remote_addr );
 		$status_code = (int) $request_row->return_code;
@@ -661,7 +661,7 @@ class Admin_Page {
 			'addresses_differ' => '' !== $remote_addr && $client_ip !== $remote_addr,
 			'second_line'      => $this->build_second_line( $request_row, $row_error_types, $current_error_type_id ),
 			'badges'           => $this->build_row_badges( $row_error_types, $current_error_type_id, $tabs_by_error_type_id ),
-			'whitelist'        => $this->build_row_whitelist_view_model( $request_row, $row_error_types, $whitelist_lookup ),
+			'allowlist'        => $this->build_row_allowlist_view_model( $request_row, $row_error_types, $allowlist_lookup ),
 		);
 	}
 

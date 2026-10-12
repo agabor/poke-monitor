@@ -34,7 +34,7 @@ For each logged request Poke Monitor stores the time, method, path, status code,
 
 * Tabs for All and each error type, with request counts.
 * Cloudflare card: shows whether your current request came through Cloudflare, and a switch to turn bypass detection on or off.
-* Whitelist by exact IP address or exact User-Agent, for all types or selected ones — for example your uptime monitor or office IP. Each log row has buttons to whitelist its IP or User-Agent in one click.
+* Allowlist by exact IP address or exact User-Agent, for all types or selected ones — for example your uptime monitor or office IP. Each log row has buttons to allowlist its IP or User-Agent in one click.
 * Clear one type, or clear the whole log.
 * Automatic clean-up: entries older than 30 days are deleted daily.
 * Requests from logged-in users are never logged.
@@ -48,7 +48,7 @@ Please read this before relying on the log.
 * **Forged Cloudflare headers are not detected.** Poke Monitor checks whether the Cloudflare headers are present, not whether the request really came from Cloudflare's network. An attacker who sends fake headers directly to your server is not logged as a bypass. To close that gap, let your server accept web traffic only from Cloudflare's IP ranges, or use Cloudflare's Authenticated Origin Pulls.
 * **The client IP of a bypass can be fake.** On requests that did not come through Cloudflare, the `CF-Connecting-IP` header is set by whoever sent the request. When the client IP differs from the address that actually connected, the log shows both; trust the connecting address when you write a firewall rule.
 * **Logged-in users are never logged**, including requests made with a stolen account.
-* **Some legitimate tools will show up** as Suspicious User Agent or XML-RPC — uptime monitors, server cron jobs that call `wp-cron.php` with `wget` or `curl`, integrations using HTTP libraries, desktop blogging apps. Add them to the whitelist.
+* **Some legitimate tools will show up** as Suspicious User Agent or XML-RPC — uptime monitors, server cron jobs that call `wp-cron.php` with `wget` or `curl`, integrations using HTTP libraries, desktop blogging apps. Add them to the allowlist.
 
 = Privacy =
 
@@ -64,7 +64,7 @@ You are responsible for mentioning the logging in your privacy policy — for ex
 1. Install Poke Monitor from Plugins → Add New, or upload the `poke-monitor` folder to `/wp-content/plugins/`.
 2. Activate the plugin **from your browser**, the way you normally visit your site. On activation Poke Monitor checks whether your request came through Cloudflare and turns bypass detection on or off accordingly.
 3. Open **Poke Monitor** in the admin menu. Check the Cloudflare card: if the switch doesn't match your setup, change it.
-4. Optionally, add your uptime monitor, office IP or other trusted tools to the whitelist.
+4. Optionally, add your uptime monitor, office IP or other trusted tools to the allowlist.
 
 If you activate the plugin with WP-CLI, the Cloudflare check runs the first time you open the Poke Monitor page instead.
 
@@ -92,7 +92,7 @@ Someone knows your server's real IP address. Configure your server or host firew
 
 = Why is my uptime monitor in the log? =
 
-Many monitors and tools use HTTP library User-Agents such as `curl` or `python-requests`. Click **+ IP** or **+ UA** on its row in the log, choose which types the entry applies to, and save. Whitelist entries match exactly.
+Many monitors and tools use HTTP library User-Agents such as `curl` or `python-requests`. Click **+ IP** or **+ UA** on its row in the log, choose which types the entry applies to, and save. Allowlist entries match exactly.
 
 = Can I keep the log for longer than 30 days? =
 

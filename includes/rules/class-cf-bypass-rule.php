@@ -1,9 +1,9 @@
 <?php
 
-namespace PokeMonitor\Rules;
+namespace Poke_Monitor\Rules;
 
-use PokeMonitor\Request_Context;
-use PokeMonitor\Cf_Detector;
+use Poke_Monitor\Request_Context;
+use Poke_Monitor\Cf_Detector;
 
 defined( 'ABSPATH' ) || exit;
 
