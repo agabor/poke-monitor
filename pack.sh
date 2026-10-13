@@ -28,6 +28,8 @@ rsync -a \
 	--exclude "dist" \
 	--exclude "node_modules" \
 	--exclude "pack.sh" \
+	--exclude "deploy.sh" \
+	--exclude ".wordpress-org" \
 	--exclude "*.zip" \
 	--exclude "*.md" \
 	--exclude ".DS_Store" \
