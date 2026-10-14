@@ -68,6 +68,7 @@ class Admin_Page {
 
 	public function on_load_page(): void {
 		Cf_Detector::maybe_auto_set_on_first_admin_visit();
+		Cf_Detector::maybe_auto_set_ip_check_on_first_admin_visit();
 	}
 
 	public function enqueue_assets( $hook_suffix ): void {
@@ -94,13 +95,17 @@ class Admin_Page {
 			'poke-monitor-admin',
 			'pokeMonitorAdmin',
 			array(
-				'ajaxUrl'                => admin_url( 'admin-ajax.php' ),
-				'nonce'                  => wp_create_nonce( self::NONCE_ACTION ),
-				'requestHasAllCfHeaders' => Cf_Detector::request_has_all_cf_headers() ? '1' : '0',
-				'strings'                => array(
+				'ajaxUrl'                   => admin_url( 'admin-ajax.php' ),
+				'nonce'                     => wp_create_nonce( self::NONCE_ACTION ),
+				'requestHasAllCfHeaders'    => Cf_Detector::request_has_all_cf_headers() ? '1' : '0',
+				'requestIsFromCloudflareIp' => Cf_Detector::request_remote_addr_is_cloudflare() ? '1' : '0',
+				'strings'                   => array(
 					'confirmEnable'                  => __( 'Turn on Cloudflare bypass detection?', 'poke-monitor' ),
 					'confirmEnableWithoutCloudflare' => __( 'This request did not come through Cloudflare. If the site is not really behind Cloudflare, every front-end request will be logged as a Cloudflare Bypass. Turn detection on anyway?', 'poke-monitor' ),
 					'confirmDisable'                 => __( 'Requests that reach your server directly will no longer be logged as Cloudflare Bypass. Turn detection off?', 'poke-monitor' ),
+					'confirmIpCheckEnable'           => __( 'Turn on the Cloudflare IP check? Requests from addresses that are not Cloudflare addresses will be logged as Cloudflare Bypass, even if they carry Cloudflare headers.', 'poke-monitor' ),
+					'confirmIpCheckEnableWithoutCloudflareIp' => __( 'This request did not come from a Cloudflare IP address. With the IP check on, requests from non-Cloudflare addresses are logged as Cloudflare Bypass even if they carry Cloudflare headers, so this could flag every visitor. Turn the IP check on anyway?', 'poke-monitor' ),
+					'confirmIpCheckDisable'          => __( 'Requests from non-Cloudflare addresses that carry Cloudflare headers will no longer be logged as Cloudflare Bypass. Turn the IP check off?', 'poke-monitor' ),
 					/* translators: 1: error type name, 2: total number of requests, 3: number of requests that stay because they have other types, 4: number of requests that are deleted. */
 					'confirmClearType'               => __( 'Remove %1$s from %2$s requests? %3$s of them also have other types and stay in those tabs; the other %4$s are deleted. This can\'t be undone.', 'poke-monitor' ),
 					'clearAllPrompt'                 => __( 'This deletes the entire log, including entries in all other tabs. Type CLEAR to confirm.', 'poke-monitor' ),
@@ -286,6 +291,7 @@ class Admin_Page {
 		$tabs_by_error_type_id   = $this->index_tabs_by_error_type_id( $tabs );
 		$cloudflare_status       = Cf_Detector::get_status();
 		$cloudflare_live_note    = Cf_Detector::get_live_note();
+		$cloudflare_ip_live_note = Cf_Detector::get_ip_check_live_note();
 		$allowlist_lookup        = $this->build_allowlist_lookup();
 
 		$rows = array();
@@ -325,6 +331,13 @@ class Admin_Page {
 				'live_note_icon' => $this->get_live_note_icon( $cloudflare_live_note ),
 				'hint'           => Cf_Detector::get_switch_hint(),
 				'description'    => $this->describe_cf_set_by( $cloudflare_status ),
+			),
+			'cloudflare_ip'      => array(
+				'enabled'        => Cf_Detector::is_ip_check_enabled(),
+				'live_note'      => $cloudflare_ip_live_note,
+				'live_note_icon' => $this->get_live_note_icon( $cloudflare_ip_live_note ),
+				'hint'           => Cf_Detector::get_ip_check_switch_hint(),
+				'description'    => $this->describe_cf_set_by( Cf_Detector::get_ip_check_status() ),
 			),
 		);
 	}

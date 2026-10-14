@@ -36,6 +36,37 @@ defined( 'ABSPATH' ) || exit;
 		<p class="poke-monitor-cf-footer" id="poke-monitor-cf-set-by"><?php echo esc_html( $cloudflare['description'] ); ?></p>
 	</div>
 
+	<div class="poke-monitor-card poke-monitor-cf-card">
+		<p class="poke-monitor-cf-note poke-monitor-cf-note--<?php echo esc_attr( $cloudflare_ip['live_note']['status'] ); ?>">
+			<span class="poke-monitor-cf-note__icon" aria-hidden="true"><?php echo esc_html( $cloudflare_ip['live_note_icon'] ); ?></span>
+			<span class="poke-monitor-cf-note__text"><?php echo esc_html( $cloudflare_ip['live_note']['message'] ); ?></span>
+		</p>
+
+		<?php if ( ! empty( $cloudflare_ip['hint'] ) ) : ?>
+			<p class="poke-monitor-cf-hint"><?php echo esc_html( $cloudflare_ip['hint'] ); ?></p>
+		<?php endif; ?>
+
+		<p class="poke-monitor-cf-explanation"><?php esc_html_e( 'Also require the connecting address to be a Cloudflare IP. Turn this off if your host does not pass Cloudflare\'s address through.', 'poke-monitor' ); ?></p>
+
+		<div class="poke-monitor-cf-switch">
+			<span class="poke-monitor-cf-switch__label" id="poke-monitor-cf-ip-switch-label"><?php esc_html_e( 'Cloudflare IP check', 'poke-monitor' ); ?></span>
+			<button
+				type="button"
+				class="poke-monitor-switch<?php echo ! empty( $cloudflare_ip['enabled'] ) ? ' is-on' : ''; ?>"
+				id="poke-monitor-cf-ip-switch"
+				role="switch"
+				aria-checked="<?php echo ! empty( $cloudflare_ip['enabled'] ) ? 'true' : 'false'; ?>"
+				aria-labelledby="poke-monitor-cf-ip-switch-label"
+				data-enabled="<?php echo ! empty( $cloudflare_ip['enabled'] ) ? '1' : '0'; ?>"
+			>
+				<span class="poke-monitor-switch__knob"></span>
+				<span class="poke-monitor-switch__state"><?php echo ! empty( $cloudflare_ip['enabled'] ) ? esc_html__( 'On', 'poke-monitor' ) : esc_html__( 'Off', 'poke-monitor' ); ?></span>
+			</button>
+		</div>
+
+		<p class="poke-monitor-cf-footer" id="poke-monitor-cf-ip-set-by"><?php echo esc_html( $cloudflare_ip['description'] ); ?></p>
+	</div>
+
 	<nav class="poke-monitor-tabs" aria-label="<?php esc_attr_e( 'Error types', 'poke-monitor' ); ?>">
 		<?php foreach ($tabs as $poke_monitor_tab ) : ?>
 			<a
