@@ -2,6 +2,7 @@
 
 namespace Poke_Monitor\Rules;
 
+use Poke_Monitor\Probe_Patterns;
 use Poke_Monitor\Request_Context;
 
 defined( 'ABSPATH' ) || exit;
@@ -58,7 +59,10 @@ class Probe_Rule {
 
 
 	public function get_patterns() {
-		return apply_filters( 'poke_monitor_probe_patterns', $this->get_default_patterns() );
+		$stored_patterns = ( new Probe_Patterns() )->get_stored_patterns();
+		$base_patterns   = ! empty( $stored_patterns ) ? $stored_patterns : $this->get_default_patterns();
+
+		return apply_filters( 'poke_monitor_probe_patterns', $base_patterns );
 	}
 
 	public function get_compiled_pattern() {
