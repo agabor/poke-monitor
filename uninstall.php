@@ -26,6 +26,9 @@ function poke_monitor_uninstall_site(): void {
 
 	$option_names = array(
 		'poke_monitor_cf_status',
+		'poke_monitor_cf_ip_status',
+		'poke_monitor_cf_ip_ranges',
+		'poke_monitor_probe_patterns',
 		'poke_monitor_settings',
 		'poke_monitor_allowlist',
 		'poke_monitor_db_version',
@@ -36,6 +39,7 @@ function poke_monitor_uninstall_site(): void {
 	}
 
 	wp_clear_scheduled_hook( 'poke_monitor_purge' );
+	wp_clear_scheduled_hook( 'poke_monitor_update_remote_data' );
 
 	wp_cache_delete( 'cache_version', 'poke-monitor' );
 }
