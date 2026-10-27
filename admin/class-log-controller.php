@@ -18,6 +18,7 @@ class Log_Controller {
 
 	public function register_hooks(): void {
 		add_action( 'wp_ajax_poke_monitor_toggle_cf', array( $this, 'ajax_toggle_cf' ) );
+		add_action( 'wp_ajax_poke_monitor_toggle_cf_ip', array( $this, 'ajax_toggle_cf_ip' ) );
 		add_action( 'wp_ajax_poke_monitor_clear_impact', array( $this, 'ajax_clear_impact' ) );
 		add_action( 'wp_ajax_poke_monitor_clear_type', array( $this, 'ajax_clear_type' ) );
 		add_action( 'wp_ajax_poke_monitor_clear_all', array( $this, 'ajax_clear_all' ) );
@@ -37,8 +38,7 @@ class Log_Controller {
 	public function ajax_toggle_cf(): void {
 		$this->verify_request();
 
-		$posted_value = isset( $_POST['enabled'] ) ? sanitize_text_field( wp_unslash( $_POST['enabled'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in verify_request().
-		$enabled      = in_array( strtolower( $posted_value ), array( '1', 'true', 'on' ), true );
+		$enabled = $this->read_posted_enabled_flag();
 
 		Cf_Detector::set_status( $enabled, 'user', get_current_user_id() );
 
@@ -48,6 +48,23 @@ class Log_Controller {
 			array(
 				'enabled'     => $enabled,
 				'set_by_text' => $admin_page->describe_cf_set_by( Cf_Detector::get_status() ),
+			)
+		);
+	}
+
+	public function ajax_toggle_cf_ip(): void {
+		$this->verify_request();
+
+		$enabled = $this->read_posted_enabled_flag();
+
+		Cf_Detector::set_ip_check_status( $enabled, 'user', get_current_user_id() );
+
+		$admin_page = new Admin_Page( $this->repository );
+
+		wp_send_json_success(
+			array(
+				'enabled'     => $enabled,
+				'set_by_text' => $admin_page->describe_cf_set_by( Cf_Detector::get_ip_check_status() ),
 			)
 		);
 	}
@@ -98,5 +115,11 @@ class Log_Controller {
 		}
 
 		return $error_type_id;
+	}
+
+	private function read_posted_enabled_flag(): bool {
+		$posted_value = isset( $_POST['enabled'] ) ? sanitize_text_field( wp_unslash( $_POST['enabled'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in verify_request().
+
+		return in_array( strtolower( $posted_value ), array( '1', 'true', 'on' ), true );
 	}
 }

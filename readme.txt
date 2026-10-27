@@ -34,6 +34,9 @@ For each logged request Poke Monitor stores the time, method, path, status code,
 
 * Tabs for All and each error type, with request counts.
 * Cloudflare card: shows whether your current request came through Cloudflare, and a switch to turn bypass detection on or off.
+* Cloudflare IP check: a separate switch that, when on, treats a request as coming through Cloudflare only if its connecting address is a Cloudflare IP address.
+* Daily update of the probing patterns from the plugin's GitHub repository, with the built-in list as a fallback.
+* Daily update of the Cloudflare IP ranges from Cloudflare.
 * Allowlist by exact IP address or exact User-Agent, for all types or selected ones — for example your uptime monitor or office IP. Each log row has buttons to allowlist its IP or User-Agent in one click.
 * Clear one type, or clear the whole log.
 * Automatic clean-up: entries older than 30 days are deleted daily.
@@ -45,7 +48,7 @@ Please read this before relying on the log.
 
 * **Only requests that reach WordPress are logged.** Requests for files that exist on disk, requests your web server blocks itself, and pages served from a full-page cache (for example Cloudflare APO, Varnish or a static cache plugin) never reach WordPress, so they are not in the log.
 * **An existing backdoor is invisible.** If a malicious PHP file actually exists in `wp-includes` or uploads, your web server runs it directly and Poke Monitor never sees the request. Blocking PHP execution in those folders at the web server is the real protection; see the FAQ.
-* **Forged Cloudflare headers are not detected.** Poke Monitor checks whether the Cloudflare headers are present, not whether the request really came from Cloudflare's network. An attacker who sends fake headers directly to your server is not logged as a bypass. To close that gap, let your server accept web traffic only from Cloudflare's IP ranges, or use Cloudflare's Authenticated Origin Pulls.
+* **Forged Cloudflare headers are not detected by default.** Poke Monitor checks whether the Cloudflare headers are present. With the Cloudflare IP check turned on, requests that carry Cloudflare headers from an address outside Cloudflare's published ranges are logged as a bypass. Without it, an attacker who sends fake headers directly to your server is not logged as a bypass. To close that gap, let your server accept web traffic only from Cloudflare's IP ranges, or use Cloudflare's Authenticated Origin Pulls.
 * **The client IP of a bypass can be fake.** On requests that did not come through Cloudflare, the `CF-Connecting-IP` header is set by whoever sent the request. When the client IP differs from the address that actually connected, the log shows both; trust the connecting address when you write a firewall rule.
 * **Logged-in users are never logged**, including requests made with a stolen account.
 * **Some legitimate tools will show up** as Suspicious User Agent or XML-RPC — uptime monitors, server cron jobs that call `wp-cron.php` with `wget` or `curl`, integrations using HTTP libraries, desktop blogging apps. Add them to the allowlist.
@@ -54,7 +57,7 @@ Please read this before relying on the log.
 
 Poke Monitor stores IP addresses and User-Agents of the requests it logs. These are personal data under the GDPR.
 
-* Everything stays in your own WordPress database. The plugin sends nothing to any external service.
+* Visitor data stays in your own WordPress database. Once a day the plugin downloads the probing patterns from raw.githubusercontent.com and the Cloudflare IP ranges from cloudflare.com. No site or visitor data is sent.
 * Entries are deleted automatically after 30 days.
 
 You are responsible for mentioning the logging in your privacy policy — for example, that IP addresses and User-Agents of suspicious requests are stored for 30 days to protect the site. This is not legal advice.
@@ -106,9 +109,17 @@ Requests that don't match any rule cost a few string checks and no database quer
 
 Multisite is not tested or supported. Activating it on individual sites is expected to work; network activation is not recommended.
 
+= What is the Cloudflare IP check? =
+
+The Cloudflare IP check is a second switch on the Cloudflare card. When it is on, a request is treated as coming through Cloudflare only if its connecting address is inside Cloudflare's published IP ranges, even if it carries the Cloudflare headers. Requests with Cloudflare headers from any other address are logged as Cloudflare Bypass. Some hosts do not forward Cloudflare's address to WordPress and show their own proxy address instead. On those hosts every request would be logged as a bypass, so turn the check off there. It is set automatically in the same way as bypass detection, and you can change it at any time.
+
+= Do the updated probing patterns replace the built-in list? =
+
+Yes. Once a day Poke Monitor downloads the current probing patterns from its GitHub repository and uses them in place of the built-in list. The built-in list stays in the plugin and is used whenever no downloaded list is stored, for example if the site has never been able to reach GitHub, so probing detection keeps working offline. The Cloudflare IP ranges work the same way: a built-in list is used until the first successful download.
+
 = What happens when I uninstall the plugin? =
 
-All Poke Monitor tables and settings are deleted. Deactivating keeps your data.
+All Poke Monitor tables and settings are deleted, including the downloaded probing patterns and Cloudflare IP ranges. Deactivating keeps your data.
 
 == Changelog ==
 

@@ -8,6 +8,9 @@
 		confirmEnable: 'Turn on Cloudflare bypass detection?',
 		confirmEnableWithoutCloudflare: 'This request did not come through Cloudflare. If the site is not really behind Cloudflare, every front-end request will be logged as a Cloudflare Bypass. Turn on bypass detection anyway?',
 		confirmDisable: 'Turn off Cloudflare bypass detection? Requests that go directly to the origin server will no longer be logged.',
+		confirmIpCheckEnable: 'Turn on the Cloudflare IP check? When it is on, requests with Cloudflare headers from addresses outside Cloudflare\'s network are logged as Cloudflare Bypass.',
+		confirmIpCheckEnableWithoutCloudflareIp: 'This request was not sent from a Cloudflare IP address. If the site is behind Cloudflare, every front-end request will be logged as a Cloudflare Bypass. Turn on the Cloudflare IP check anyway?',
+		confirmIpCheckDisable: 'Requests with Cloudflare headers from addresses outside Cloudflare\'s network will no longer be logged as Cloudflare Bypass. Turn the Cloudflare IP check off?',
 		confirmClearType: 'Remove %1$s from %2$s requests? %3$s of them also have other types and stay in those tabs; the other %4$s are deleted. This can\'t be undone.',
 		clearAllPrompt: 'This deletes the whole log, all types. Type CLEAR to confirm.',
 		errorGeneric: 'Something went wrong. Please try again.',
@@ -65,6 +68,10 @@
 		return '1' === config.requestHasAllCfHeaders;
 	}
 
+	function requestIsFromCloudflareIp() {
+		return '1' === config.requestIsFromCloudflareIp;
+	}
+
 	function renderSwitchState( switchButton, enabled ) {
 		const stateLabel = switchButton.querySelector( '.poke-monitor-switch__state' );
 
@@ -89,9 +96,21 @@
 		return getString( 'confirmEnable' );
 	}
 
-	function initCloudflareSwitch() {
-		const switchButton = document.getElementById( 'poke-monitor-cf-switch' );
-		const setByElement = document.getElementById( 'poke-monitor-cf-set-by' );
+	function getIpSwitchConfirmMessage( turningOn ) {
+		if ( ! turningOn ) {
+			return getString( 'confirmIpCheckDisable' );
+		}
+
+		if ( ! requestIsFromCloudflareIp() ) {
+			return getString( 'confirmIpCheckEnableWithoutCloudflareIp' );
+		}
+
+		return getString( 'confirmIpCheckEnable' );
+	}
+
+	function initSwitch( options ) {
+		const switchButton = document.getElementById( options.switchId );
+		const setByElement = document.getElementById( options.setById );
 
 		if ( ! switchButton ) {
 			return;
@@ -101,13 +120,13 @@
 			const currentlyEnabled = '1' === switchButton.getAttribute( 'data-enabled' );
 			const turningOn = ! currentlyEnabled;
 
-			if ( ! window.confirm( getSwitchConfirmMessage( turningOn ) ) ) {
+			if ( ! window.confirm( options.getConfirmMessage( turningOn ) ) ) {
 				return;
 			}
 
 			switchButton.disabled = true;
 
-			postAjax( 'poke_monitor_toggle_cf', { enabled: turningOn ? '1' : '0' } )
+			postAjax( options.action, { enabled: turningOn ? '1' : '0' } )
 				.then( function ( response ) {
 					if ( ! response || ! response.success ) {
 						renderSwitchState( switchButton, currentlyEnabled );
@@ -510,7 +529,20 @@
 	}
 
 	function init() {
-		initCloudflareSwitch();
+		initSwitch( {
+			switchId: 'poke-monitor-cf-switch',
+			setById: 'poke-monitor-cf-set-by',
+			action: 'poke_monitor_toggle_cf',
+			getConfirmMessage: getSwitchConfirmMessage
+		} );
+
+		initSwitch( {
+			switchId: 'poke-monitor-cf-ip-switch',
+			setById: 'poke-monitor-cf-ip-set-by',
+			action: 'poke_monitor_toggle_cf_ip',
+			getConfirmMessage: getIpSwitchConfirmMessage
+		} );
+
 		initClearType();
 		initClearAll();
 		initAllowlist();

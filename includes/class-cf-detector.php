@@ -8,6 +8,8 @@ class Cf_Detector {
 
 	const OPTION_NAME = 'poke_monitor_cf_status';
 
+	const IP_OPTION_NAME = 'poke_monitor_cf_ip_status';
+
 	public static function request_has_all_cf_headers() {
 		return ! empty( $_SERVER['HTTP_CF_RAY'] )
 			&& ! empty( $_SERVER['HTTP_CF_IPCOUNTRY'] )
@@ -33,6 +35,14 @@ class Cf_Detector {
 	}
 
 	public static function get_status() {
+		return self::read_status( self::OPTION_NAME );
+	}
+
+	public static function get_ip_check_status() {
+		return self::read_status( self::IP_OPTION_NAME );
+	}
+
+	private static function read_status( $option_name ) {
 		$default_status = array(
 			'enabled' => false,
 			'state'   => 'unknown',
@@ -41,7 +51,7 @@ class Cf_Detector {
 			'user_id' => null,
 		);
 
-		$stored_status = get_option( self::OPTION_NAME, array() );
+		$stored_status = get_option( $option_name, array() );
 
 		if ( ! is_array( $stored_status ) ) {
 			$stored_status = array();
@@ -56,8 +66,24 @@ class Cf_Detector {
 		return (bool) $current_status['enabled'];
 	}
 
+	public static function is_ip_check_enabled() {
+		$current_status = self::get_ip_check_status();
+
+		return (bool) $current_status['enabled'];
+	}
+
 	public static function is_cloudflare_trusted_request() {
-		return self::is_bypass_detection_enabled() && self::request_has_all_cf_headers();
+		return self::is_bypass_detection_enabled()
+			&& self::request_has_all_cf_headers()
+			&& ( ! self::is_ip_check_enabled() || self::request_remote_addr_is_cloudflare() );
+	}
+
+	public static function request_remote_addr_is_cloudflare(): bool {
+		return self::is_cloudflare_ip( self::get_remote_address() );
+	}
+
+	public static function is_cloudflare_ip( string $ip ): bool {
+		return ( new Cf_Ip_Ranges() )->contains( $ip );
 	}
 
 	public static function maybe_auto_set_on_activation() {
@@ -84,7 +110,39 @@ class Cf_Detector {
 		self::set_status( self::request_has_all_cf_headers(), 'first_admin_visit' );
 	}
 
+	public static function maybe_auto_set_ip_check_on_activation() {
+		$current_status = self::get_ip_check_status();
+
+		if ( 'unknown' !== $current_status['state'] ) {
+			return;
+		}
+
+		if ( empty( $_SERVER['REQUEST_METHOD'] ) ) {
+			return;
+		}
+
+		self::set_ip_check_status( self::request_remote_addr_is_cloudflare(), 'activation' );
+	}
+
+	public static function maybe_auto_set_ip_check_on_first_admin_visit() {
+		$current_status = self::get_ip_check_status();
+
+		if ( 'unknown' !== $current_status['state'] ) {
+			return;
+		}
+
+		self::set_ip_check_status( self::request_remote_addr_is_cloudflare(), 'first_admin_visit' );
+	}
+
 	public static function set_status( $enabled, $set_by, $user_id = null ) {
+		self::store_status( self::OPTION_NAME, $enabled, $set_by, $user_id );
+	}
+
+	public static function set_ip_check_status( $enabled, $set_by, $user_id = null ) {
+		self::store_status( self::IP_OPTION_NAME, $enabled, $set_by, $user_id );
+	}
+
+	private static function store_status( $option_name, $enabled, $set_by, $user_id ) {
 		$new_status = array(
 			'enabled' => (bool) $enabled,
 			'state'   => 'set',
@@ -93,7 +151,11 @@ class Cf_Detector {
 			'user_id' => $user_id,
 		);
 
-		update_option( self::OPTION_NAME, $new_status );
+		update_option( $option_name, $new_status );
+	}
+
+	private static function get_remote_address(): string {
+		return ( new Ip_Resolver() )->resolve_remote_addr();
 	}
 
 	public static function get_live_note() {
@@ -157,6 +219,55 @@ class Cf_Detector {
 
 		if ( ! $bypass_detection_enabled && $request_has_all_headers ) {
 			return __( 'This site seems to be behind Cloudflare. Turn on bypass detection?', 'poke-monitor' );
+		}
+
+		return null;
+	}
+
+	public static function get_ip_check_live_note() {
+		$remote_address = self::get_remote_address();
+
+		if ( '' === $remote_address ) {
+			return array(
+				'status'  => 'none',
+				'message' => __( 'This request was not sent from a Cloudflare IP address (address unknown)', 'poke-monitor' ),
+			);
+		}
+
+		if ( ! self::is_cloudflare_ip( $remote_address ) ) {
+			return array(
+				'status'  => 'none',
+				'message' => sprintf(
+					__( 'This request was not sent from a Cloudflare IP address (%s)', 'poke-monitor' ),
+					$remote_address
+				),
+			);
+		}
+
+		return array(
+			'status'  => 'full',
+			'message' => sprintf(
+				__( 'This request was sent from a Cloudflare IP address (%s)', 'poke-monitor' ),
+				$remote_address
+			),
+		);
+	}
+
+	public static function get_ip_check_switch_hint() {
+		$ip_check_enabled     = self::is_ip_check_enabled();
+		$bypass_detection_on  = self::is_bypass_detection_enabled();
+		$remote_is_cloudflare = self::request_remote_addr_is_cloudflare();
+
+		if ( $ip_check_enabled && ! $bypass_detection_on ) {
+			return __( 'The Cloudflare IP check has no effect while Cloudflare bypass detection is off.', 'poke-monitor' );
+		}
+
+		if ( $ip_check_enabled && ! $remote_is_cloudflare ) {
+			return __( "This request was not sent from a Cloudflare IP address, so every request will be logged as a Cloudflare Bypass. Some hosts show their own proxy address instead of Cloudflare's. If that is your case, turn this check off.", 'poke-monitor' );
+		}
+
+		if ( ! $ip_check_enabled && $remote_is_cloudflare ) {
+			return __( 'This request was sent from a Cloudflare IP address. Turn on the Cloudflare IP check?', 'poke-monitor' );
 		}
 
 		return null;

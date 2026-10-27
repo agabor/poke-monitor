@@ -3,7 +3,7 @@
  * Plugin Name: Poke Monitor
  * Plugin URI: https://github.com/agabor/poke-monitor
  * Description: Logs suspicious requests: Cloudflare bypasses, probing for secret files, direct PHP access, XML-RPC calls and scanner user agents.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author: Gabor Angyal
@@ -17,7 +17,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'POKE_MONITOR_VERSION', '1.0.0' );
+define( 'POKE_MONITOR_VERSION', '1.1.0' );
 
 define( 'POKE_MONITOR_PLUGIN_FILE', __FILE__ );
 
